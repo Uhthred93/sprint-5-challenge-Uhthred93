@@ -35,51 +35,70 @@ async function sprintChallenge5() { // Note the async keyword, in case you wish 
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <h3>${learner.fullName}</h3>
-      <p>Email: ${learner.email}</p>
-      <div class="mentor-list">
-        <h4 class="mentor-toggle closed">Mentors</h4>
-        <ul style="display: none;">
-          ${learner.mentors.map(name => `<li>${name}</li>`).join('')}
-        </ul>
-      </div>
+    <h3>${learner.fullName}</h3>
+    <p>Email: ${learner.email}</p>
+    <div class="mentor-list">
+      <h4 class="mentor-toggle closed">Mentors</h4>
+      <ul style="display: none;">
+        ${learner.mentors.map(name => `<li>${name}</li>`).join('')}
+      </ul>
+    </div>
     `
 
-    const mentorToggle = card.querySelector('.mentor-toggle')
-    const mentorList = card.querySelector('ul')
-    const nameElement = card.querySelector('h3')
+    const mentorToggle = card.querySelector('.mentor-toggle');
+    const mentorList = card.querySelector('ul');
+    const nameElement = card.querySelector('h3');
 
     mentorToggle.addEventListener('click', function(event) {
-      event.stopPropagation()
-      this.classList.toggle('closed')
-      this.classList.toggle('open')
-      mentorList.style.display = mentorList.style.display === 'none' ? 'block' : 'none'
-    })
+        event.stopPropagation();
+        const isSelected = card.classList.contains('selected');
+
+        // Logic for deselecting other cards when clicking on mentor list
+        if (!isSelected) {
+            deselectAllCards();
+            card.classList.add('selected');
+            nameElement.textContent = `${learner.fullName}, ID ${learner.id}`;
+        }
+
+        this.classList.toggle('closed');
+        this.classList.toggle('open');
+        mentorList.style.display = mentorList.style.display === 'none' ? 'block' : 'none';
+    });
 
     card.addEventListener('click', function() {
-      const isSelected = this.classList.contains('selected');
-      document.querySelectorAll('.card.selected').forEach(selectedCard => {
-          selectedCard.classList.remove('selected');
-          selectedCard.querySelector('h3').textContent = selectedCard.querySelector('h3').textContent.replace(/, ID \d+/, '');
-      });
+        const isSelected = this.classList.contains('selected');
+        if (!isSelected) {
+            deselectAllCards();
+            this.classList.add('selected');
+            nameElement.textContent = `${learner.fullName}, ID ${learner.id}`;
+        } else {
+            this.classList.remove('selected');
+            nameElement.textContent = learner.fullName;
+        }
 
-      if (!isSelected) {
-          this.classList.add('selected');
-          nameElement.textContent = `${learner.fullName}, ID ${learner.id}`;
-      } else {
-          this.classList.remove('selected');
-          nameElement.textContent = learner.fullName;
-      }
+        updateInfoParagraph();
+    });
 
-      const infoParagraph = document.querySelector('.info');
-      if (this.classList.contains('selected')) {
-          infoParagraph.textContent = `The selected learner is ${learner.fullName}`;
-      } else {
-          infoParagraph.textContent = 'No learner is selected';
-      }
-  });
+    return card;
+}
 
-  return card;
+function deselectAllCards() {
+    document.querySelectorAll('.card.selected').forEach(selectedCard => {
+        selectedCard.classList.remove('selected');
+        const h3 = selectedCard.querySelector('h3');
+        h3.textContent = h3.textContent.replace(/, ID \d+/, '');
+    });
+}
+
+function updateInfoParagraph() {
+  const infoParagraph = document.querySelector('.info');
+  const selectedCard = document.querySelector('.card.selected');
+  if (selectedCard) {
+      const learnerName = selectedCard.querySelector('h3').textContent.split(',')[0]; 
+      infoParagraph.textContent = `The selected learner is ${learnerName}`;
+  } else {
+      infoParagraph.textContent = 'No learner is selected';
+  }
 }
 
 function renderLearnerCards(data) {
